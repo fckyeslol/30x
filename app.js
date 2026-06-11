@@ -73,12 +73,16 @@ async function loadFromSupabase(user) {
     sb.from("predicciones").select("*").eq("user_id", user.id).eq("fecha_partidos", today),
   ]);
 
-  if (!profile || !preds?.length) return;
+  if (profile) {
+    state.profile = { nombre: profile.nombre || "", celular: profile.celular || "" };
+  }
+
+  if (!preds?.length) return;
 
   state.submitted = {
-    nombre: profile.nombre,
+    nombre: profile?.nombre || user.email,
     correo: user.email,
-    celular: profile.celular,
+    celular: profile?.celular || "",
     predicciones: preds.map((p) => ({
       partidoId: p.partido_id,
       partido: p.partido,
@@ -143,6 +147,9 @@ const state = {
   matches: [],
   predictions: {}, // { matchId: { home, away, touched } }
   submitted: null, // { nombre, correo, celular, predicciones, ts }
+  user: null,      // Supabase authenticated user
+  profile: { nombre: "", celular: "" }, // nombre/celular del jugador
+  isLoginMode: false,
   usingFallback: false,
 };
 
@@ -279,7 +286,7 @@ function getPrediction(matchId) {
 function buildStepper(match, sideKey) {
   const pred = getPrediction(match.id);
   const wrap = el("div", "stepper");
-  const disabled = isLocked(match) || Boolean(state.submitted);
+  const disabled = isLocked(match) || Boolean(state.submitted) || !state.user;
 
   const btnMinus = el("button", "stepper__btn", "−");
   btnMinus.type = "button";
@@ -475,6 +482,55 @@ function tick() {
   $("#cdS").textContent = pad2(total % 60);
 }
 
+/* ── Auth UI ───────────────────────────────────────────── */
+
+function setAuthMode(loginMode) {
+  state.isLoginMode = loginMode;
+
+  // Tabs
+  $("#tabReg").classList.toggle("auth-tab--active", !loginMode);
+  $("#tabLogin").classList.toggle("auth-tab--active", loginMode);
+
+  // Campos solo-registro
+  const regOnly = ["fieldNombre", "fieldCelular", "fieldConsent"];
+  regOnly.forEach((id) => {
+    const el = $(`#${id}`);
+    if (el) el.hidden = loginMode;
+  });
+  $(`#err-consent`).hidden = true;
+
+  // Textos dinámicos
+  $("#authBtn").innerHTML = loginMode
+    ? "Entrar <span aria-hidden='true'>→</span>"
+    : "Crear cuenta y jugar <span aria-hidden='true'>→</span>";
+  $("#passHint").textContent = loginMode
+    ? "Usa la contraseña que creaste al registrarte."
+    : "Primera vez aquí = crea tu contraseña. ¿Ya jugaste? usa la misma.";
+  $("#signup-title").innerHTML = loginMode ? "Bienvenido<br />de vuelta" : "Crea tu<br />cuenta";
+  $("#authSub").textContent = loginMode
+    ? "Ingresa con tu correo y contraseña para ver tus predicciones."
+    : "Regístrate una vez y predice todos los partidos del mundial.";
+  $("#authBadge").textContent = loginMode ? "Iniciar sesión" : "Paso 1 de 2";
+}
+
+function showAuthSuccess(nombre) {
+  $("#authForm").hidden = true;
+  $("#authTabs").hidden = true;
+  const panel = $("#authSuccess");
+  panel.hidden = false;
+  const primerNombre = (nombre || "crack").split(/\s+/)[0];
+  $("#authWelcomeTitle").textContent = `¡Listo, ${primerNombre}!`;
+  $("#authWelcomeMsg").textContent = "Ya puedes hacer tus predicciones abajo.";
+  panel.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function unlockMatches() {
+  $("#matchesGate").hidden = true;
+  $("#matchesSave").hidden = state.submitted !== null;
+  renderMatches();
+  renderChrome();
+}
+
 /* ── Formulario ────────────────────────────────────────── */
 
 const validators = {
@@ -576,69 +632,122 @@ async function retryPending() {
   writeJSON(STORE.pending, stillPending);
 }
 
-async function handleSubmit(event) {
+/* ── Fase 1: Autenticación ─────────────────────────────── */
+
+async function handleAuth(event) {
   event.preventDefault();
   const form = event.currentTarget;
-  const nombre = form.nombre.value;
+  const nombre = form.nombre?.value ?? "";
   const correo = form.correo.value;
-  const celular = form.celular.value;
+  const celular = form.celular?.value ?? "";
   const contrasena = form.contrasena.value;
 
-  // honeypot: si un bot lo llenó, fingimos éxito sin enviar nada
+  // honeypot
   if (form.empresa.value) {
-    showSuccess(nombre.trim() || "crack");
+    showAuthSuccess(nombre.trim() || "crack");
     return;
   }
 
   let firstBad = null;
-  for (const [field, validate] of Object.entries(validators)) {
-    const message = validate(form[field].value);
-    showError(field, message);
-    if (message && !firstBad) firstBad = field;
+
+  if (!state.isLoginMode) {
+    const errNombre = validators.nombre(nombre);
+    showError("nombre", errNombre);
+    if (errNombre && !firstBad) firstBad = "nombre";
+
+    const errCelular = validators.celular(celular);
+    showError("celular", errCelular);
+    if (errCelular && !firstBad) firstBad = "celular";
   }
-  if (!$("#consent").checked) {
+
+  const errCorreo = validators.correo(correo);
+  showError("correo", errCorreo);
+  if (errCorreo && !firstBad) firstBad = "correo";
+
+  const errPass = validators.contrasena(contrasena);
+  showError("contrasena", errPass);
+  if (errPass && !firstBad) firstBad = "contrasena";
+
+  if (!state.isLoginMode && !$("#consent").checked) {
     showError("consent", "Necesitamos tu autorización para jugar.");
     if (!firstBad) firstBad = "consent";
   } else {
     showError("consent", null);
   }
 
+  if (firstBad) { $(`#${firstBad}`)?.focus(); return; }
+
+  const btn = $("#authBtn");
+  btn.disabled = true;
+  btn.textContent = state.isLoginMode ? "Entrando…" : "Creando cuenta…";
+
+  const email = correo.trim().toLowerCase();
+
+  try {
+    const user = await signUpOrIn(email, contrasena);
+    state.user = user;
+
+    if (!state.isLoginMode) {
+      state.profile = { nombre: nombre.trim(), celular: `+57${normalizePhone(celular)}` };
+      await saveToSupabase(user, {
+        nombre: state.profile.nombre,
+        celular: state.profile.celular,
+        diaDePartidos: bogotaDateStr(),
+        predicciones: [],
+      });
+    } else {
+      await loadFromSupabase(user);
+    }
+
+    showAuthSuccess(nombre.trim() || user.email);
+    unlockMatches();
+
+    if (state.submitted) showSuccess(state.submitted.nombre, { confetti: false });
+  } catch (err) {
+    showError("contrasena", err.message || "Error al autenticar. Intenta de nuevo.");
+    btn.disabled = false;
+    btn.innerHTML = state.isLoginMode
+      ? "Entrar <span aria-hidden='true'>→</span>"
+      : "Crear cuenta y jugar <span aria-hidden='true'>→</span>";
+  }
+}
+
+/* ── Fase 2: Guardar predicciones ──────────────────────── */
+
+async function handleSavePredictions() {
+  if (!state.user) return;
+
   const predicciones = collectPredictions().filter((p) => !p.cerradoAlEnviar);
   const hayAbiertos = state.matches.some((m) => !isLocked(m));
-  if (hayAbiertos && predicciones.length === 0 && !firstBad) {
+
+  if (hayAbiertos && predicciones.length === 0) {
     $("#matchesNote").hidden = false;
-    $("#matchesNote").textContent = "⚽ Te falta lo más rico: pon al menos un marcador antes de enviar.";
+    $("#matchesNote").textContent = "⚽ Te falta lo más rico: pon al menos un marcador antes de guardar.";
     document.getElementById("partidos").scrollIntoView({ behavior: "smooth" });
     return;
   }
-  if (firstBad) {
-    $(`#${firstBad}`)?.focus();
-    return;
-  }
 
-  const btn = $("#submitBtn");
+  const btn = $("#saveBtn");
   btn.disabled = true;
-  btn.textContent = "Sellando…";
+  btn.textContent = "Guardando…";
 
-  const email = correo.trim().toLowerCase();
   const payload = {
     source: "polla-mundialista-30x",
     fecha: new Date().toISOString(),
-    nombre: nombre.trim(),
-    correo: email,
-    celular: `+57${normalizePhone(celular)}`,
+    nombre: state.profile.nombre || state.user.user_metadata?.nombre || state.user.email,
+    correo: state.user.email,
+    celular: state.profile.celular || state.user.user_metadata?.celular || "",
     autorizaDatos: true,
     diaDePartidos: bogotaDateStr(),
     predicciones,
   };
 
   try {
-    const user = await signUpOrIn(email, contrasena);
-    if (user) await saveToSupabase(user, payload);
+    await saveToSupabase(state.user, payload);
   } catch (err) {
-    showError("contrasena", err.message || "Error al registrar. Intenta de nuevo.");
+    console.error("[polla] Error guardando predicciones:", err);
     btn.disabled = false;
-    btn.textContent = "Enviar mi polla →";
+    btn.innerHTML = "Guardar mi polla <span aria-hidden='true'>→</span>";
     return;
   }
 
@@ -654,15 +763,74 @@ async function handleSubmit(event) {
   };
   writeJSON(STORE.submitted, state.submitted);
 
+  $("#matchesSave").hidden = true;
   showSuccess(payload.nombre);
   renderMatches();
   renderChrome();
 }
 
+/* ── Descuentos por aciertos ───────────────────────────── */
+// 2 marcadores exactos = 15% · 3+ marcadores exactos = 30%
+
+function discountFor(aciertos) {
+  if (aciertos >= 3) return 30;
+  if (aciertos >= 2) return 15;
+  return 0;
+}
+
+// Cuenta marcadores exactos comparando predicciones vs resultados FINALES
+function countAciertos() {
+  const preds = state.submitted?.predicciones ?? [];
+  let aciertos = 0;
+  for (const p of preds) {
+    const match = state.matches.find((m) => m.id === p.partidoId);
+    if (!match) continue;
+    const final = match.state === "post" || match.completed;
+    if (!final) continue;
+    if (match.homeScore === p.local && match.awayScore === p.visitante) aciertos++;
+  }
+  return aciertos;
+}
+
+function renderDiscount() {
+  const box = $("#discountBox");
+  if (!box) return;
+  const aciertos = countAciertos();
+  const pct = discountFor(aciertos);
+  const preds = state.submitted?.predicciones ?? [];
+  const finales = preds.filter((p) => {
+    const m = state.matches.find((mm) => mm.id === p.partidoId);
+    return m && (m.state === "post" || m.completed);
+  }).length;
+
+  if (pct > 0) {
+    box.hidden = false;
+    box.className = "discount discount--won";
+    box.innerHTML =
+      `<span class="discount__pct">${pct}%</span>` +
+      `<span class="discount__label">de descuento en 30X 🎉<br>` +
+      `Acertaste <strong>${aciertos}</strong> marcador${aciertos === 1 ? "" : "es"} exacto${aciertos === 1 ? "" : "s"}.</span>`;
+  } else if (finales > 0) {
+    box.hidden = false;
+    box.className = "discount discount--pending";
+    box.innerHTML =
+      `<span class="discount__label">Llevas <strong>${aciertos}</strong> de ${finales} acertados. ` +
+      `Acierta <strong>2</strong> y ganas <strong>15%</strong> de descuento; <strong>3</strong> y ganas <strong>30%</strong>.</span>`;
+  } else {
+    box.hidden = false;
+    box.className = "discount discount--pending";
+    box.innerHTML =
+      `<span class="discount__label">🏆 Acierta <strong>2</strong> marcadores y ganas <strong>15%</strong> de descuento en 30X. ` +
+      `Acierta <strong>3</strong> y ganas <strong>30%</strong>.</span>`;
+  }
+}
+
 /* ── Éxito + compartir + confetti ──────────────────────── */
 
 function showSuccess(nombre, { confetti = true } = {}) {
-  $("#pollaForm").hidden = true;
+  $("#authForm").hidden = true;
+  $("#authTabs").hidden = true;
+  $("#matchesSave").hidden = true;
   const panel = $("#successPanel");
   panel.hidden = false;
 
@@ -677,8 +845,10 @@ function showSuccess(nombre, { confetti = true } = {}) {
     picks.append(el("span", "chip", `${p.partido}: ${p.marcador}`));
   }
 
+  renderDiscount();
+
   const lines = preds.map((p) => `${p.partido} ${p.marcador}`).join(" · ");
-  const text = `⚽🏆 Ya sellé mi Polla Mundialista 30X${lines ? `: ${lines}` : ""}. ¿Te la sabes más que yo? Juega gratis antes del pitazo 👉 ${location.href.split("#")[0]}`;
+  const text = `⚽🏆 Ya sellé mi Polla Mundialista 30X${lines ? `: ${lines}` : ""}. Acierta 2 marcadores = 15% off, 3 = 30% off en 30X. ¿Te la sabes? 👉 ${location.href.split("#")[0]}`;
   $("#shareBtn").href = `https://wa.me/?text=${encodeURIComponent(text)}`;
 
   if (confetti) {
@@ -736,23 +906,32 @@ async function refreshData() {
   state.matches = await fetchFixtures();
   renderMatches();
   renderChrome();
+  if (state.submitted) renderDiscount(); // recalcula descuento si hay partidos finales
 }
 
 async function init() {
   loadSaved();
 
-  // Restaurar sesión de Supabase si el usuario ya jugó antes
-  const { data: { session } } = await sb.auth.getSession();
-  if (session?.user && !state.submitted) {
-    await loadFromSupabase(session.user);
-  }
+  // Listeners de auth
+  $("#authForm").addEventListener("submit", handleAuth);
+  $("#tabReg").addEventListener("click", () => setAuthMode(false));
+  $("#tabLogin").addEventListener("click", () => setAuthMode(true));
+  $("#saveBtn").addEventListener("click", handleSavePredictions);
+  setAuthMode(false);
 
-  $("#pollaForm").addEventListener("submit", handleSubmit);
+  // Restaurar sesión de Supabase si el usuario ya inició antes
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) {
+    state.user = session.user;
+    if (!state.submitted) await loadFromSupabase(session.user);
+  }
 
   await refreshData();
 
-  if (state.submitted) {
-    showSuccess(state.submitted.nombre, { confetti: false });
+  if (state.user) {
+    showAuthSuccess(state.user.user_metadata?.nombre || state.user.email);
+    unlockMatches();
+    if (state.submitted) showSuccess(state.submitted.nombre, { confetti: false });
   }
 
   tick();

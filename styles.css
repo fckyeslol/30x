@@ -554,6 +554,23 @@ button { font: inherit; cursor: pointer; }
 .field__hint  { color: rgba(247,245,242,0.5); font-size: 0.8rem; }
 .field__error { color: #ff9d9d; font-size: 0.83rem; font-weight: 700; }
 
+/* ── Auth tabs (registro / login) ──────────────────────── */
+.auth-side { position: relative; z-index: 2; }
+.auth-tabs {
+  display: flex; gap: 0.4rem; margin-bottom: 1.4rem;
+  background: rgba(247, 245, 242, 0.07);
+  border: 2px solid rgba(247, 245, 242, 0.18);
+  border-radius: 12px; padding: 4px;
+}
+.auth-tab {
+  flex: 1; font-family: var(--font-display); font-size: 0.78rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: rgba(247, 245, 242, 0.6); background: transparent;
+  border: none; border-radius: 9px; padding: 0.75em 0.5em;
+  transition: background 0.18s var(--ease-pop), color 0.18s;
+}
+.auth-tab--active { background: var(--lime); color: var(--ink); }
+
 .consent { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; align-items: start; cursor: pointer; }
 .consent input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .consent__box {
@@ -590,6 +607,42 @@ button { font: inherit; cursor: pointer; }
 .success__picks { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .success__picks .chip { background: transparent; color: var(--paper); border-color: rgba(247, 245, 242, 0.5); }
 .success__share { justify-self: start; background: #1ebe5d; color: #fff; border-color: var(--ink); }
+
+/* ── Caja de descuento ─────────────────────────────────── */
+.discount {
+  display: flex; align-items: center; gap: 1rem;
+  border-radius: 14px; padding: 1rem 1.2rem;
+  border: 3px solid var(--lime);
+}
+.discount--won {
+  background: linear-gradient(135deg, rgba(235,255,111,0.18), rgba(235,255,111,0.04));
+  animation: stampIn 0.5s var(--ease-pop) both;
+}
+.discount--pending { border-color: rgba(247,245,242,0.3); background: rgba(247,245,242,0.04); }
+.discount__pct {
+  font-family: var(--font-display); font-size: clamp(2.4rem, 2rem + 2vw, 3.4rem);
+  line-height: 1; color: var(--lime);
+}
+.discount__label { font-size: 0.9rem; color: rgba(247,245,242,0.9); font-weight: 600; line-height: 1.35; }
+.discount__label strong { color: var(--lime); }
+
+/* ── Gate + guardar (sección partidos) ─────────────────── */
+.matches__gate {
+  display: grid; gap: 0.9rem; place-items: center; text-align: center;
+  padding: clamp(2rem, 5vw, 3.5rem);
+  border: 3px dashed var(--ink); border-radius: var(--radius);
+  background: rgba(10, 10, 10, 0.03);
+  margin-bottom: 1.5rem;
+}
+.matches__gate-lock { font-size: 2.4rem; }
+.matches__gate p { font-weight: 700; font-size: 1.05rem; max-width: 30ch; }
+.matches__save { margin-top: 1.6rem; display: grid; gap: 0.6rem; justify-items: start; }
+.matches__save-btn { box-shadow: var(--shadow-pop-sm); }
+.matches__saved {
+  margin-top: 1.6rem; padding: clamp(1.4rem, 3vw, 2.2rem);
+  background: var(--ink); color: var(--paper);
+  border: var(--border); border-radius: var(--radius);
+}
 
 /* ── Colombia ──────────────────────────────────────────── */
 .colombia { position: relative; border-top: var(--border); }

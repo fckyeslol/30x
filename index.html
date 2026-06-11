@@ -58,16 +58,16 @@
         <div class="hero__bar" aria-hidden="true"><i></i><i></i><i></i></div>
 
         <p class="hero__sub">
-          No la veas desde la tribuna: <strong>júgatela</strong>. Predice los marcadores de los
-          partidos de <strong>HOY</strong> antes del pitazo inicial.
+          No la veas desde la tribuna: <strong>júgatela</strong>. Regístrate, predice los marcadores
+          de los partidos de <strong>HOY</strong> y compite en el ranking.
           <span class="hero__rule">Cuando la pelota rueda, se cierra la jugada.</span>
         </p>
 
         <div class="hero__actions">
-          <a class="btn btn--ink" href="#partidos">Hacer mi polla <span aria-hidden="true">↓</span></a>
+          <a class="btn btn--ink" href="#registro">Registrarme gratis <span aria-hidden="true">↓</span></a>
           <div class="hero__points">
-            <span class="chip chip--lime">Exacto = 3 pts</span>
-            <span class="chip">Ganador = 1 pt</span>
+            <span class="chip chip--lime">2 aciertos = 15% off</span>
+            <span class="chip">3 aciertos = 30% off</span>
           </div>
         </div>
       </div>
@@ -86,6 +86,89 @@
 
     <div class="band-tricolor" aria-hidden="true"></div>
 
+    <!-- ══ REGISTRO / LOGIN ══════════════════════════════ -->
+    <section class="signup" id="registro" aria-labelledby="signup-title">
+      <div class="signup__panel">
+        <div class="signup__copy">
+          <p class="sticker sticker--lime signup__badge" id="authBadge">Paso 1 de 2</p>
+          <h2 class="signup__title" id="signup-title">Crea tu<br />cuenta</h2>
+          <p class="signup__sub" id="authSub">Regístrate una vez y predice todos los partidos del mundial.</p>
+          <ul class="signup__perks" id="authPerks">
+            <li>✓ 100% gratis, siempre</li>
+            <li>✓ Te avisamos cómo va tu puntaje</li>
+            <li>✓ Cero spam: solo fútbol y 30X</li>
+          </ul>
+        </div>
+
+        <div class="auth-side">
+          <!-- Tabs registro / login -->
+          <div class="auth-tabs" id="authTabs">
+            <button class="auth-tab auth-tab--active" id="tabReg" type="button">Registrarme</button>
+            <button class="auth-tab" id="tabLogin" type="button">Ya tengo cuenta</button>
+          </div>
+
+          <form class="form" id="authForm" novalidate>
+            <!-- Solo en modo registro -->
+            <div class="field" id="fieldNombre">
+              <label class="field__label" for="nombre">Nombre</label>
+              <input class="field__input" type="text" id="nombre" name="nombre" autocomplete="name" placeholder="¿Cómo te dicen?" />
+              <p class="field__error" id="err-nombre" role="alert" hidden></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="correo">Correo</label>
+              <input class="field__input" type="email" id="correo" name="correo" autocomplete="email" placeholder="tucorreo@ejemplo.com" required />
+              <p class="field__error" id="err-correo" role="alert" hidden></p>
+            </div>
+
+            <!-- Solo en modo registro -->
+            <div class="field" id="fieldCelular">
+              <label class="field__label" for="celular">Celular</label>
+              <div class="field__phone">
+                <span class="field__prefix">🇨🇴 +57</span>
+                <input class="field__input" type="tel" id="celular" name="celular" autocomplete="tel-national" inputmode="numeric" placeholder="300 123 4567" maxlength="14" />
+              </div>
+              <p class="field__error" id="err-celular" role="alert" hidden></p>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="contrasena">Contraseña</label>
+              <input class="field__input" type="password" id="contrasena" name="contrasena" autocomplete="current-password" placeholder="Mínimo 6 caracteres" required minlength="6" />
+              <p class="field__hint" id="passHint">Primera vez aquí = crea tu contraseña. ¿Ya jugaste? usa la misma.</p>
+              <p class="field__error" id="err-contrasena" role="alert" hidden></p>
+            </div>
+
+            <!-- honeypot anti-bots -->
+            <div class="field field--hp" aria-hidden="true">
+              <label for="empresa">Empresa</label>
+              <input type="text" id="empresa" name="empresa" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <!-- Solo en modo registro -->
+            <label class="consent" id="fieldConsent">
+              <input type="checkbox" id="consent" />
+              <span class="consent__box" aria-hidden="true"></span>
+              <span class="consent__text">Autorizo a 30X el tratamiento de mis datos para gestionar la polla y contarme novedades (Ley 1581 de 2012).</span>
+            </label>
+            <p class="field__error" id="err-consent" role="alert" hidden></p>
+
+            <button class="btn btn--lime form__submit" type="submit" id="authBtn">
+              Crear cuenta y jugar <span aria-hidden="true">→</span>
+            </button>
+            <p class="form__hint">🔒 Tus datos solo para el juego. Nada raro.</p>
+          </form>
+
+          <!-- Bienvenida post-auth -->
+          <div class="success" id="authSuccess" hidden>
+            <div class="success__stamp" aria-hidden="true">✓ Listo</div>
+            <h2 class="success__title" id="authWelcomeTitle">¡Bienvenido!</h2>
+            <p class="success__msg" id="authWelcomeMsg">Ya puedes hacer tus predicciones.</p>
+            <a class="btn btn--lime" href="#partidos">Ver los partidos de hoy <span aria-hidden="true">↓</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ══ PARTIDOS DE HOY ═══════════════════════════════ -->
     <section class="matches" id="partidos" aria-labelledby="matches-title">
       <div class="matches__head">
@@ -96,6 +179,13 @@
         </div>
       </div>
 
+      <!-- Gate: solo visible si no hay sesión -->
+      <div class="matches__gate" id="matchesGate">
+        <span class="matches__gate-lock" aria-hidden="true">🔒</span>
+        <p>Regístrate primero para hacer tus predicciones</p>
+        <a class="btn btn--ink" href="#registro">Registrarme gratis</a>
+      </div>
+
       <div class="matches__list" id="matchList">
         <div class="matches__loading" id="matchesLoading">
           <span class="spinner" aria-hidden="true"></span> Trayendo los partidos del día…
@@ -103,6 +193,27 @@
       </div>
 
       <p class="matches__note" id="matchesNote" hidden></p>
+
+      <!-- Botón guardar: visible solo cuando hay sesión -->
+      <div class="matches__save" id="matchesSave" hidden>
+        <button class="btn btn--lime matches__save-btn" type="button" id="saveBtn">
+          Guardar mi polla <span aria-hidden="true">→</span>
+        </button>
+        <p class="form__hint">Puedes ajustar hasta el pitazo inicial.</p>
+      </div>
+
+      <!-- Panel éxito post-guardado -->
+      <div class="success matches__saved" id="successPanel" hidden>
+        <div class="success__stamp" aria-hidden="true">✓ Registrada</div>
+        <h2 class="success__title">¡Polla sellada!</h2>
+        <p class="success__msg" id="successMsg">Quedaste dentro del juego.</p>
+        <div class="discount" id="discountBox" hidden></div>
+        <div class="success__picks" id="successPicks"></div>
+        <a class="btn btn--ink success__share" id="shareBtn" href="#" target="_blank" rel="noopener">
+          Retar a mis parceros por WhatsApp
+        </a>
+        <p class="form__hint">Más predicen, más sabroso el ranking.</p>
+      </div>
     </section>
 
     <!-- ══ CÓMO JUGAR ════════════════════════════════════ -->
@@ -111,96 +222,20 @@
       <ol class="rules__grid">
         <li class="rule-card">
           <span class="rule-card__num">01</span>
-          <h3>Predice</h3>
-          <p>Pon el marcador que te dicta el corazón (o la cabeza) en cada partido de hoy.</p>
+          <h3>Regístrate</h3>
+          <p>Crea tu cuenta gratis con nombre, correo y celular. Un solo registro para todo el mundial.</p>
         </li>
         <li class="rule-card">
           <span class="rule-card__num">02</span>
-          <h3>Regístrate</h3>
-          <p>Deja tu nombre, correo y celular para sellar tu polla. Sin costo, sin letra menuda.</p>
+          <h3>Predice</h3>
+          <p>Pon el marcador que te dicta el corazón en cada partido de hoy. Antes del pitazo inicial.</p>
         </li>
         <li class="rule-card">
           <span class="rule-card__num">03</span>
-          <h3>Suma puntos</h3>
-          <p>Marcador exacto vale <strong>3 puntos</strong>, acertar el ganador o empate vale <strong>1</strong>. El ranking no perdona.</p>
+          <h3>Gana descuento</h3>
+          <p>Acierta <strong>2 marcadores</strong> exactos y ganas <strong>15% de descuento</strong> en 30X. Acierta <strong>3</strong> y te llevas <strong>30%</strong>.</p>
         </li>
       </ol>
-    </section>
-
-    <!-- ══ REGISTRO ══════════════════════════════════════ -->
-    <section class="signup" id="registro" aria-labelledby="signup-title">
-      <div class="signup__panel">
-        <div class="signup__copy">
-          <p class="sticker sticker--lime signup__badge">Paso final</p>
-          <h2 class="signup__title" id="signup-title">Asegura<br />tu jugada</h2>
-          <p class="signup__sub">Tu polla solo cuenta si está firmada. Déjanos tus datos y quedas dentro del juego.</p>
-          <ul class="signup__perks">
-            <li>✓ 100% gratis, siempre</li>
-            <li>✓ Te avisamos cómo va tu puntaje</li>
-            <li>✓ Cero spam: solo fútbol y 30X</li>
-          </ul>
-        </div>
-
-        <form class="form" id="pollaForm" novalidate>
-          <div class="field">
-            <label class="field__label" for="nombre">Nombre</label>
-            <input class="field__input" type="text" id="nombre" name="nombre" autocomplete="name" placeholder="¿Cómo te dicen?" required />
-            <p class="field__error" id="err-nombre" role="alert" hidden></p>
-          </div>
-
-          <div class="field">
-            <label class="field__label" for="correo">Correo</label>
-            <input class="field__input" type="email" id="correo" name="correo" autocomplete="email" placeholder="tucorreo@ejemplo.com" required />
-            <p class="field__error" id="err-correo" role="alert" hidden></p>
-          </div>
-
-          <div class="field">
-            <label class="field__label" for="celular">Celular</label>
-            <div class="field__phone">
-              <span class="field__prefix">🇨🇴 +57</span>
-              <input class="field__input" type="tel" id="celular" name="celular" autocomplete="tel-national" inputmode="numeric" placeholder="300 123 4567" maxlength="14" required />
-            </div>
-            <p class="field__error" id="err-celular" role="alert" hidden></p>
-          </div>
-
-          <div class="field">
-            <label class="field__label" for="contrasena">Contraseña</label>
-            <input class="field__input" type="password" id="contrasena" name="contrasena" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required minlength="6" />
-            <p class="field__hint">Primera vez aquí = crea tu contraseña. ¿Ya jugaste antes? usa la misma.</p>
-            <p class="field__error" id="err-contrasena" role="alert" hidden></p>
-          </div>
-
-          <!-- honeypot anti-bots: humanos no ven este campo -->
-          <div class="field field--hp" aria-hidden="true">
-            <label for="empresa">Empresa</label>
-            <input type="text" id="empresa" name="empresa" tabindex="-1" autocomplete="off" />
-          </div>
-
-          <label class="consent">
-            <input type="checkbox" id="consent" required />
-            <span class="consent__box" aria-hidden="true"></span>
-            <span class="consent__text">Autorizo a 30X el tratamiento de mis datos para gestionar la polla y contarme novedades (Ley 1581 de 2012).</span>
-          </label>
-          <p class="field__error" id="err-consent" role="alert" hidden></p>
-
-          <button class="btn btn--lime form__submit" type="submit" id="submitBtn">
-            Enviar mi polla <span aria-hidden="true">→</span>
-          </button>
-          <p class="form__hint">🔒 Tus datos solo para el juego. Nada raro.</p>
-        </form>
-
-        <!-- Estado de éxito (lo muestra JS) -->
-        <div class="success" id="successPanel" hidden>
-          <div class="success__stamp" aria-hidden="true">✓ Registrada</div>
-          <h2 class="success__title">¡Polla sellada!</h2>
-          <p class="success__msg" id="successMsg">Quedaste dentro del juego.</p>
-          <div class="success__picks" id="successPicks"></div>
-          <a class="btn btn--ink success__share" id="shareBtn" href="#" target="_blank" rel="noopener">
-            Retar a mis parceros por WhatsApp
-          </a>
-          <p class="form__hint">Más predicen, más sabroso el ranking.</p>
-        </div>
-      </div>
     </section>
 
     <!-- ══ COLOMBIA ══════════════════════════════════════ -->

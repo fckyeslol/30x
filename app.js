@@ -848,7 +848,7 @@ function showSuccess(nombre, { confetti = true } = {}) {
   renderDiscount();
 
   const lines = preds.map((p) => `${p.partido} ${p.marcador}`).join(" · ");
-  const text = `⚽🏆 Ya sellé mi Polla Mundialista 30X${lines ? `: ${lines}` : ""}. Acierta 2 marcadores = 15% off, 3 = 30% off en 30X. ¿Te la sabes? 👉 ${location.href.split("#")[0]}`;
+  const text = `\u{26BD}\u{1F3C6} Ya sellé mi Polla Mundialista 30X${lines ? `: ${lines}` : ""}. Acierta 2 marcadores = 15% off, 3 = 30% off en 30X. ¿Te la sabes? \u{1F449} ${location.href.split("#")[0]}`;
   $("#shareBtn").href = `https://wa.me/?text=${encodeURIComponent(text)}`;
 
   if (confetti) {

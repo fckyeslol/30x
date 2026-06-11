@@ -38,6 +38,11 @@ async function signUpOrIn(email, password) {
 }
 
 async function saveToSupabase(user, payload) {
+  // Guarda nombre y celular en el metadata del usuario (visible en Auth dashboard)
+  await sb.auth.updateUser({
+    data: { nombre: payload.nombre, celular: payload.celular },
+  });
+
   const { error: profileError } = await sb.from("profiles").upsert({
     id: user.id,
     nombre: payload.nombre,

@@ -163,6 +163,13 @@
             <p class="field__error" id="err-celular" role="alert" hidden></p>
           </div>
 
+          <div class="field">
+            <label class="field__label" for="contrasena">Contraseña</label>
+            <input class="field__input" type="password" id="contrasena" name="contrasena" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required minlength="6" />
+            <p class="field__hint">Primera vez aquí = crea tu contraseña. ¿Ya jugaste antes? usa la misma.</p>
+            <p class="field__error" id="err-contrasena" role="alert" hidden></p>
+          </div>
+
           <!-- honeypot anti-bots: humanos no ven este campo -->
           <div class="field field--hp" aria-hidden="true">
             <label for="empresa">Empresa</label>
@@ -228,6 +235,7 @@
   <canvas id="confettiCanvas" aria-hidden="true"></canvas>
   <div class="grain" aria-hidden="true"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

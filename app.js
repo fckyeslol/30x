@@ -10,6 +10,77 @@
 
 "use strict";
 
+/* ── Supabase ──────────────────────────────────────────── */
+
+const SUPABASE_URL = "https://qscotgrwdrjbxpuxudpv.supabase.co";
+const SUPABASE_ANON_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzY290Z3J3ZHJqYnhwdXh1ZHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExOTU5MDgsImV4cCI6MjA5Njc3MTkwOH0.n7B8g4FXCArmm3gBJO_UYelhpdRHitc9RrmPMU5NCFw";
+
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function signUpOrIn(email, password) {
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if (!error) return data.user;
+
+  // Usuario ya existe → intentar sign in
+  if (error.status === 422 || error.message.toLowerCase().includes("already")) {
+    const { data: siData, error: siError } = await sb.auth.signInWithPassword({ email, password });
+    if (siError) throw new Error("Ya tienes cuenta con ese correo. Revisa tu contraseña.");
+    return siData.user;
+  }
+  throw error;
+}
+
+async function saveToSupabase(user, payload) {
+  await sb.from("profiles").upsert({
+    id: user.id,
+    nombre: payload.nombre,
+    celular: payload.celular,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (payload.predicciones.length === 0) return;
+  const rows = payload.predicciones.map((p) => ({
+    user_id: user.id,
+    fecha_partidos: payload.diaDePartidos,
+    partido_id: p.partidoId,
+    partido: p.partido,
+    local_score: p.local,
+    visitante_score: p.visitante,
+    marcador: p.marcador,
+    inicio: p.inicio,
+  }));
+  await sb.from("predicciones").upsert(rows, { onConflict: "user_id,partido_id" });
+}
+
+async function loadFromSupabase(user) {
+  const today = bogotaDateStr();
+  const [{ data: profile }, { data: preds }] = await Promise.all([
+    sb.from("profiles").select("nombre,celular").eq("id", user.id).single(),
+    sb.from("predicciones").select("*").eq("user_id", user.id).eq("fecha_partidos", today),
+  ]);
+
+  if (!profile || !preds?.length) return;
+
+  state.submitted = {
+    nombre: profile.nombre,
+    correo: user.email,
+    celular: profile.celular,
+    predicciones: preds.map((p) => ({
+      partidoId: p.partido_id,
+      partido: p.partido,
+      local: p.local_score,
+      visitante: p.visitante_score,
+      marcador: p.marcador,
+    })),
+    ts: new Date().toISOString(),
+  };
+  writeJSON(STORE.submitted, state.submitted);
+  for (const p of state.submitted.predicciones) {
+    state.predictions[p.partidoId] = { home: p.local, away: p.visitante, touched: true };
+  }
+}
+
 const CONFIG = {
   // Pega aquí tu webhook (n8n, Make, Apps Script, Zapier…).
   // Si queda vacío, las pollas se guardan en localStorage
@@ -413,6 +484,10 @@ const validators = {
     }
     return null;
   },
+  contrasena(value) {
+    if (value.length < 6) return "Mínimo 6 caracteres para la contraseña.";
+    return null;
+  },
 };
 
 function normalizePhone(value) {
@@ -494,6 +569,7 @@ async function handleSubmit(event) {
   const nombre = form.nombre.value;
   const correo = form.correo.value;
   const celular = form.celular.value;
+  const contrasena = form.contrasena.value;
 
   // honeypot: si un bot lo llenó, fingimos éxito sin enviar nada
   if (form.empresa.value) {
@@ -531,16 +607,27 @@ async function handleSubmit(event) {
   btn.disabled = true;
   btn.textContent = "Sellando…";
 
+  const email = correo.trim().toLowerCase();
   const payload = {
     source: "polla-mundialista-30x",
     fecha: new Date().toISOString(),
     nombre: nombre.trim(),
-    correo: correo.trim().toLowerCase(),
+    correo: email,
     celular: `+57${normalizePhone(celular)}`,
     autorizaDatos: true,
     diaDePartidos: bogotaDateStr(),
     predicciones,
   };
+
+  try {
+    const user = await signUpOrIn(email, contrasena);
+    if (user) await saveToSupabase(user, payload);
+  } catch (err) {
+    showError("contrasena", err.message || "Error al registrar. Intenta de nuevo.");
+    btn.disabled = false;
+    btn.textContent = "Enviar mi polla →";
+    return;
+  }
 
   const sent = await sendToWebhook(payload);
   if (!sent) queuePending(payload);
@@ -640,6 +727,13 @@ async function refreshData() {
 
 async function init() {
   loadSaved();
+
+  // Restaurar sesión de Supabase si el usuario ya jugó antes
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user && !state.submitted) {
+    await loadFromSupabase(session.user);
+  }
+
   $("#pollaForm").addEventListener("submit", handleSubmit);
 
   await refreshData();

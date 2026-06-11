@@ -551,6 +551,7 @@ button { font: inherit; cursor: pointer; }
   border: 2.5px solid rgba(247, 245, 242, 0.35); border-radius: 10px;
   background: rgba(247, 245, 242, 0.06);
 }
+.field__hint  { color: rgba(247,245,242,0.5); font-size: 0.8rem; }
 .field__error { color: #ff9d9d; font-size: 0.83rem; font-weight: 700; }
 
 .consent { display: grid; grid-template-columns: auto 1fr; gap: 0.7rem; align-items: start; cursor: pointer; }

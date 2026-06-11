@@ -39,10 +39,14 @@ CREATE POLICY "profiles_insert_own" ON public.profiles
 CREATE POLICY "profiles_update_own" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
--- predicciones: todos pueden leer (ranking público), cada uno edita las suyas
-CREATE POLICY "predicciones_select_all" ON public.predicciones
-  FOR SELECT USING (true);
+-- predicciones: cada usuario solo lee y edita las suyas (privacidad)
+CREATE POLICY "predicciones_select_own" ON public.predicciones
+  FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "predicciones_insert_own" ON public.predicciones
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "predicciones_update_own" ON public.predicciones
   FOR UPDATE USING (auth.uid() = user_id);
+
+-- Forzar RLS incluso para el dueño de la tabla (defensa extra)
+ALTER TABLE public.profiles     FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.predicciones FORCE ROW LEVEL SECURITY;

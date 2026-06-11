@@ -1,0 +1,15 @@
+# Secretos — NUNCA commitear
+.env
+.env.*
+*.secret
+*service_role*
+*sb_secret*
+
+# Dependencias y build
+node_modules/
+.vercel/
+dist/
+
+# Sistema
+.DS_Store
+Thumbs.db

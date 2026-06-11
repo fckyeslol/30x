@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Polla Mundialista 30X — Predice los partidos de hoy</title>
+  <meta name="description" content="Predice los partidos de HOY del Mundial 2026 antes del pitazo inicial. Cuando la pelota rueda, se cierra la jugada. Gratis, by 30X." />
+  <meta name="theme-color" content="#ebff6f" />
+
+  <!-- Open Graph / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_CO" />
+  <meta property="og:title" content="La Polla Mundialista 30X ⚽🏆" />
+  <meta property="og:description" content="Predice los partidos de HOY del Mundial 2026 antes del pitazo inicial. Marcador exacto = 3 pts. ¿Te la sabes?" />
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%23ebff6f'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Figtree:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ══ TICKER ══════════════════════════════════════════ -->
+  <div class="ticker" role="presentation">
+    <div class="ticker__track" id="tickerTrack">
+      <span class="ticker__chunk" id="tickerA">MUNDIAL 2026 ★ LA POLLA MUNDIALISTA 30X ★ PREDICE ANTES DEL PITAZO ★</span>
+      <span class="ticker__chunk" id="tickerB" aria-hidden="true">MUNDIAL 2026 ★ LA POLLA MUNDIALISTA 30X ★ PREDICE ANTES DEL PITAZO ★</span>
+    </div>
+  </div>
+
+  <!-- ══ HEADER ══════════════════════════════════════════ -->
+  <header class="header">
+    <a class="brand" href="https://www.30x.com" target="_blank" rel="noopener">
+      <span class="brand__mark">30X</span>
+      <span class="brand__sub">Escuela de Negocios</span>
+    </a>
+    <div class="header__next" id="headerNext" aria-live="off">
+      <span class="header__next-dot"></span>
+      <span id="headerNextText">Cargando partidos…</span>
+    </div>
+    <a class="header__cta" href="#registro">Jugar gratis</a>
+  </header>
+
+  <main>
+    <!-- ══ HERO ══════════════════════════════════════════ -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero__bg-year" aria-hidden="true">2026</div>
+
+      <div class="hero__inner">
+        <p class="sticker sticker--lime hero__kicker">⚽ Mundial 2026 · gratis · sin excusas</p>
+
+        <h1 class="hero__title" id="hero-title">
+          <span class="hero__line hero__line--1">La <span class="hl">Polla</span></span>
+          <span class="hero__line hero__line--2">Mundialista</span>
+        </h1>
+
+        <div class="hero__bar" aria-hidden="true"><i></i><i></i><i></i></div>
+
+        <p class="hero__sub">
+          No la veas desde la tribuna: <strong>júgatela</strong>. Predice los marcadores de los
+          partidos de <strong>HOY</strong> antes del pitazo inicial.
+          <span class="hero__rule">Cuando la pelota rueda, se cierra la jugada.</span>
+        </p>
+
+        <div class="hero__actions">
+          <a class="btn btn--ink" href="#partidos">Hacer mi polla <span aria-hidden="true">↓</span></a>
+          <div class="hero__points">
+            <span class="chip chip--lime">Exacto = 3 pts</span>
+            <span class="chip">Ganador = 1 pt</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Decoración: sticker bandera + balón halftone -->
+      <div class="hero__deco" aria-hidden="true">
+        <div class="panini">
+          <div class="panini__tape"></div>
+          <div class="panini__flag"><i></i><i></i><i></i></div>
+          <span class="panini__label">COL · Grupo K</span>
+        </div>
+        <div class="deco-ball"></div>
+        <div class="sticker sticker--red hero__today" id="heroTodayBadge">★ Hoy juegan</div>
+      </div>
+    </section>
+
+    <div class="band-tricolor" aria-hidden="true"></div>
+
+    <!-- ══ PARTIDOS DE HOY ═══════════════════════════════ -->
+    <section class="matches" id="partidos" aria-labelledby="matches-title">
+      <div class="matches__head">
+        <h2 class="section-title" id="matches-title">Partidos<br />de hoy</h2>
+        <div class="matches__date">
+          <span class="matches__date-label">Hora colombiana 🇨🇴</span>
+          <span class="matches__date-value" id="todayLabel">—</span>
+        </div>
+      </div>
+
+      <div class="matches__list" id="matchList">
+        <div class="matches__loading" id="matchesLoading">
+          <span class="spinner" aria-hidden="true"></span> Trayendo los partidos del día…
+        </div>
+      </div>
+
+      <p class="matches__note" id="matchesNote" hidden></p>
+    </section>
+
+    <!-- ══ CÓMO JUGAR ════════════════════════════════════ -->
+    <section class="rules" aria-labelledby="rules-title">
+      <h2 class="visually-hidden" id="rules-title">Cómo jugar</h2>
+      <ol class="rules__grid">
+        <li class="rule-card">
+          <span class="rule-card__num">01</span>
+          <h3>Predice</h3>
+          <p>Pon el marcador que te dicta el corazón (o la cabeza) en cada partido de hoy.</p>
+        </li>
+        <li class="rule-card">
+          <span class="rule-card__num">02</span>
+          <h3>Regístrate</h3>
+          <p>Deja tu nombre, correo y celular para sellar tu polla. Sin costo, sin letra menuda.</p>
+        </li>
+        <li class="rule-card">
+          <span class="rule-card__num">03</span>
+          <h3>Suma puntos</h3>
+          <p>Marcador exacto vale <strong>3 puntos</strong>, acertar el ganador o empate vale <strong>1</strong>. El ranking no perdona.</p>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ══ REGISTRO ══════════════════════════════════════ -->
+    <section class="signup" id="registro" aria-labelledby="signup-title">
+      <div class="signup__panel">
+        <div class="signup__copy">
+          <p class="sticker sticker--lime signup__badge">Paso final</p>
+          <h2 class="signup__title" id="signup-title">Asegura<br />tu jugada</h2>
+          <p class="signup__sub">Tu polla solo cuenta si está firmada. Déjanos tus datos y quedas dentro del juego.</p>
+          <ul class="signup__perks">
+            <li>✓ 100% gratis, siempre</li>
+            <li>✓ Te avisamos cómo va tu puntaje</li>
+            <li>✓ Cero spam: solo fútbol y 30X</li>
+          </ul>
+        </div>
+
+        <form class="form" id="pollaForm" novalidate>
+          <div class="field">
+            <label class="field__label" for="nombre">Nombre</label>
+            <input class="field__input" type="text" id="nombre" name="nombre" autocomplete="name" placeholder="¿Cómo te dicen?" required />
+            <p class="field__error" id="err-nombre" role="alert" hidden></p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="correo">Correo</label>
+            <input class="field__input" type="email" id="correo" name="correo" autocomplete="email" placeholder="tucorreo@ejemplo.com" required />
+            <p class="field__error" id="err-correo" role="alert" hidden></p>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="celular">Celular</label>
+            <div class="field__phone">
+              <span class="field__prefix">🇨🇴 +57</span>
+              <input class="field__input" type="tel" id="celular" name="celular" autocomplete="tel-national" inputmode="numeric" placeholder="300 123 4567" maxlength="14" required />
+            </div>
+            <p class="field__error" id="err-celular" role="alert" hidden></p>
+          </div>
+
+          <!-- honeypot anti-bots: humanos no ven este campo -->
+          <div class="field field--hp" aria-hidden="true">
+            <label for="empresa">Empresa</label>
+            <input type="text" id="empresa" name="empresa" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <label class="consent">
+            <input type="checkbox" id="consent" required />
+            <span class="consent__box" aria-hidden="true"></span>
+            <span class="consent__text">Autorizo a 30X el tratamiento de mis datos para gestionar la polla y contarme novedades (Ley 1581 de 2012).</span>
+          </label>
+          <p class="field__error" id="err-consent" role="alert" hidden></p>
+
+          <button class="btn btn--lime form__submit" type="submit" id="submitBtn">
+            Enviar mi polla <span aria-hidden="true">→</span>
+          </button>
+          <p class="form__hint">🔒 Tus datos solo para el juego. Nada raro.</p>
+        </form>
+
+        <!-- Estado de éxito (lo muestra JS) -->
+        <div class="success" id="successPanel" hidden>
+          <div class="success__stamp" aria-hidden="true">✓ Registrada</div>
+          <h2 class="success__title">¡Polla sellada!</h2>
+          <p class="success__msg" id="successMsg">Quedaste dentro del juego.</p>
+          <div class="success__picks" id="successPicks"></div>
+          <a class="btn btn--ink success__share" id="shareBtn" href="#" target="_blank" rel="noopener">
+            Retar a mis parceros por WhatsApp
+          </a>
+          <p class="form__hint">Más predicen, más sabroso el ranking.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══ COLOMBIA ══════════════════════════════════════ -->
+    <section class="colombia" aria-labelledby="colombia-title">
+      <div class="colombia__flag" aria-hidden="true"><i></i><i></i><i></i></div>
+      <div class="colombia__content">
+        <h2 class="colombia__title" id="colombia-title">La Tricolor debuta</h2>
+        <p class="colombia__when">Mié 17 de junio · 9:00 p.m. 🇨🇴 vs Uzbekistán · Estadio Banorte, CDMX</p>
+        <div class="colombia__count" id="colCountdown" role="timer" aria-label="Cuenta regresiva al debut de Colombia">
+          <div class="colombia__unit"><b id="cdD">—</b><span>días</span></div>
+          <div class="colombia__unit"><b id="cdH">—</b><span>horas</span></div>
+          <div class="colombia__unit"><b id="cdM">—</b><span>min</span></div>
+          <div class="colombia__unit"><b id="cdS">—</b><span>seg</span></div>
+        </div>
+        <p class="colombia__group">Grupo K — <span>Colombia</span> · Uzbekistán · RD del Congo · Portugal</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ══ FOOTER ══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer__brand">
+      <span class="brand__mark brand__mark--paper">30X</span>
+      <p>No te preparamos para el futuro.<br />Te ponemos a jugarlo.</p>
+    </div>
+    <div class="footer__meta">
+      <p>La Polla Mundialista es un juego gratuito de <a href="https://www.30x.com" target="_blank" rel="noopener">30X</a>. Tus datos se tratan según nuestra política de privacidad y la Ley 1581 de 2012 (habeas data). No está asociada a FIFA.</p>
+      <p class="footer__copy">© 2026 30X · Hecho en LATAM con 🧡⚽</p>
+    </div>
+  </footer>
+
+  <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

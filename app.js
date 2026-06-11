@@ -20,7 +20,13 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function signUpOrIn(email, password) {
   const { data, error } = await sb.auth.signUp({ email, password });
-  if (!error) return data.user;
+  if (!error) {
+    // Si no hay sesión = email confirmation requerida
+    if (!data.session) {
+      throw new Error("¡Cuenta creada! Revisa tu correo para confirmar y luego vuelve a jugar.");
+    }
+    return data.user;
+  }
 
   // Usuario ya existe → intentar sign in
   if (error.status === 422 || error.message.toLowerCase().includes("already")) {
@@ -32,12 +38,13 @@ async function signUpOrIn(email, password) {
 }
 
 async function saveToSupabase(user, payload) {
-  await sb.from("profiles").upsert({
+  const { error: profileError } = await sb.from("profiles").upsert({
     id: user.id,
     nombre: payload.nombre,
     celular: payload.celular,
     updated_at: new Date().toISOString(),
   });
+  if (profileError) throw profileError;
 
   if (payload.predicciones.length === 0) return;
   const rows = payload.predicciones.map((p) => ({
@@ -50,7 +57,8 @@ async function saveToSupabase(user, payload) {
     marcador: p.marcador,
     inicio: p.inicio,
   }));
-  await sb.from("predicciones").upsert(rows, { onConflict: "user_id,partido_id" });
+  const { error: predsError } = await sb.from("predicciones").upsert(rows, { onConflict: "user_id,partido_id" });
+  if (predsError) throw predsError;
 }
 
 async function loadFromSupabase(user) {

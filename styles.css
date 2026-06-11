@@ -195,11 +195,11 @@ button { font: inherit; cursor: pointer; }
 .hero__kicker { animation: riseIn 0.7s var(--ease-out) both; }
 .hero__title {
   font-family: var(--font-display);
-  font-size: clamp(3.2rem, 1.5rem + 10.5vw, 9rem);
+  font-size: clamp(2.25rem, 9.5vw, 9rem);
   line-height: 0.92;
   text-transform: uppercase;
   margin: 1.6rem 0 1.2rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .hero__line { display: block; }
 .hero__line--1 { animation: riseIn 0.7s 0.08s var(--ease-out) both; }
